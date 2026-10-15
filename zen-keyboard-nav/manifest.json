@@ -1,0 +1,18 @@
+{
+  "manifest_version": 3,
+  "name": "Zen Keyboard Navigator (Prototype)",
+  "version": "0.1.0",
+  "description": "Opt-in keyboard link hints and arrow navigation, including YouTube video cards.",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "zen-keyboard-nav@local.example"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

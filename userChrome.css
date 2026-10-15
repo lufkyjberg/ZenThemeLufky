@@ -1,0 +1,1157 @@
+zen-folder .tab-close-button {
+    display: none !important;
+}
+
+/* =========================================================
+   ZEN lufky — ТЕМА И СПРАВОЧНИК ДЛЯ ЭКСПЕРИМЕНТОВ
+
+   Этот файл оформляет ИНТЕРФЕЙС браузера:
+   вкладки, папки, адресную строку, кнопки и меню.
+   Для страниц сайтов используется соседний userContent.css.
+
+   ПЕРВОЕ ПРАВИЛО ВЫШЕ СОХРАНЕНО.
+   Оно скрывает крестики вкладок внутри папок Zen.
+
+   СОДЕРЖАНИЕ — ищи номер блока через Ctrl+F:
+   1. Настройки: цвета, размеры, время и амплитуда движения.
+   2. Вкладки: обычные, наведённые и выбранные.
+   3. Папки: фон заголовка и цвет иконки.
+   4. Адресная строка, поиск, рамка и светящийся ореол.
+   5. Кнопки панели: наведение и нажатие.
+   6. Строка состояния с адресом ссылки.
+   7. Анимации и системное уменьшение движения.
+   8. Стекло Windows и тонировка окна.
+   9. Прозрачный контейнер для разрешённых сайтов.
+   10. Как проверить, что изменения применились.
+   11. Справочник CSS: селекторы, каскад, размеры и эффекты.
+   12. Готовые дополнительные эффекты — выключенные примеры.
+   13. Место для твоих собственных правил.
+
+   КАК ПРИМЕНЯТЬ ИЗМЕНЕНИЯ
+   1) Меняешь значение и сохраняешь файл.
+   2) Полностью закрываешь Zen, затем запускаешь снова.
+      Обновление сайта кнопкой F5 этот файл не перечитывает.
+      Новое окно при работающем Zen тоже не гарантирует перечитывание.
+   3) Повторяешь действие: открываешь новую вкладку, раскрываешь
+      папку, вызываешь поиск. Однократный эффект сам не повторится.
+
+   КАК ПИСАТЬ
+   --имя: значение;             объявление настройки
+   var(--имя)                  использование настройки
+   px                          расстояние или размер
+   ms / s                      время: 1000ms = 1s
+   rgba(14, 20, 34, 0.22)       цвет с непрозрачностью 22%
+   !important                  повышенный приоритет свойства
+
+   Комментарий начинается со слеша и звёздочки и заканчивается звёздочкой и слешем.
+   Внутри комментария нельзя открывать ещё один комментарий.
+   Если случайно удалить его закрытие, следующие правила исчезнут.
+
+   Значения 1000ms для появления оставлены как ты их поставил.
+   Основной акцент тоже оставлен зелёным: #0dff2d.
+   ========================================================= */
+
+/* 1. ПАЛИТРА И ОСНОВНЫЕ НАСТРОЙКИ
+   Начинай эксперименты здесь. Ниже используются эти переменные.
+   Величины времени не меняют загрузку сайтов и скорость самого Zen.
+   Они относятся только к перечисленным визуальным эффектам. */
+
+:root {
+  /* ЦВЕТА
+     Основной акцент: полоска вкладки, рамки, курсор в поиске.
+     Название cyan историческое: здесь можно поставить любой цвет.
+     #0dff2d — зелёный, #70d5ff — голубой, #ff91b8 — розовый.
+     Производные заливки ниже берут оттенок из этой переменной. */
+  --lufky-cyan: #0dff2d;
+  --lufky-violet: #b39aff; /* Второй акцент: папки и пульсация поиска. */
+  --lufky-text: #e8ecfa; /* Основной текст интерфейса. */
+  --lufky-muted: #9aa8c7; /* Адреса и второстепенные подписи. */
+  --lufky-surface: #141a2b; /* Непрозрачный фон меню и поиска. */
+  --lufky-edge: rgba(159, 179, 230, 0.14); /* Тонкие рамки. */
+
+  /* ВРЕМЯ ДВИЖЕНИЯ — ВСЕ НАСТРОЙКИ ТЕМЫ В ОДНОМ МЕСТЕ
+     Общий множитель: 1 — обычное время, 2 — вдвое медленнее,
+     0.5 — вдвое быстрее. Меняет и transition, и наши keyframes.
+     Для проверки поставь 3, перезапусти Zen, наведи мышь на вкладку.
+     Значение без единиц! Не пиши здесь 2s.
+     Встроенные анимации Zen и видео на сайтах множитель не меняет. */
+  --lufky-motion-multiplier: 1;
+
+  /* НАВЕДЕНИЕ И СМЕНА СОСТОЯНИЯ
+     Эти времена влияют на уже существующие элементы.
+     Пример: 1000ms для tab-hover-time делает сдвиг медленным
+     при входе мыши И при её уходе с вкладки. */
+  --lufky-tab-hover-time: 240ms; /* Сдвиг вкладки и поворот её иконки. */
+  --lufky-color-time: 200ms; /* Смена фонового цвета иконок/панелей. */
+  --lufky-shadow-time: 240ms; /* Смена рамок и теней вкладок/поиска. */
+  --lufky-button-time: 180ms; /* Подъём и нажатие кнопок панели. */
+  --lufky-result-time: 160ms; /* Подсветка строки результата поиска. */
+  --lufky-folder-icon-time: 300ms; /* Движение деталей иконки папки. */
+
+  /* ПОЯВЛЕНИЕ — ЗАПУСКАЕТСЯ ПРИ КОНКРЕТНОМ ДЕЙСТВИИ
+     Новая вкладка: Ctrl+T. Уже открытая вкладка не переигрывает вход.
+     Отдельные закреплённые вкладки и Essentials исключены.
+     Вкладки ВНУТРИ папок участвуют, хотя Zen тоже помечает их pinned. */
+  --lufky-tab-enter-time: 500ms;
+  /* Выбор другой вкладки: проявляется её фон, а не вся веб-страница.
+     На повторный щелчок уже выбранной вкладки эффект не запускается. */
+  --lufky-tab-select-time: 280ms;
+  /* Раскрытие папки: проявление и небольшой сдвиг её содержимого.
+     Высоту списка анимирует код Zen; это время её не замедляет. */
+  --lufky-folder-enter-time: 500ms;
+  /* Открытие адресного поиска: Ctrl+L и начало ввода.
+     Меняет проявление фона, ввода и результатов.
+     Положение плавающего окна продолжает задавать сам Zen. */
+  --lufky-search-enter-time: 500ms;
+  --lufky-search-results-delay: 45ms; /* Результаты чуть позже поля ввода. */
+  --lufky-halo-period: 4s; /* Цикл яркости ореола: больше = медленнее. */
+
+  /* ХАРАКТЕР ДВИЖЕНИЯ
+     ease-in-out: заметный плавный разгон и торможение появления.
+     linear: равномерный ход, удобен для проверки длительности.
+     Старый cubic-bezier почти завершал движение в начале секунды,
+     поэтому изменение общего времени было плохо заметно. */
+  --lufky-enter-ease: ease-in-out;
+  --lufky-ease: cubic-bezier(0.22, 1, 0.36, 1); /* Наведение: быстрая реакция. */
+
+  /* АМПЛИТУДА — НАСКОЛЬКО СИЛЬНО ДВИГАЕТСЯ ЭЛЕМЕНТ
+     Время и расстояние независимы. 0px убирает только сдвиг.
+     Масштаб 1 убирает увеличение/уменьшение.
+     Непрозрачность 1 в начале убирает проявление. */
+  --lufky-tab-shift: 3px; /* Сдвиг наведённой вкладки вбок. */
+  --lufky-tab-shift-direction: 1; /* Справа переопределяется на -1. */
+  --lufky-tab-press-scale: 0.985; /* Размер вкладки при нажатии. */
+  --lufky-tab-enter-offset: 9px; /* Начальная позиция новой вкладки ниже списка. */
+  --lufky-tab-enter-scale: 0.94; /* Начальный размер новой вкладки: 94%. */
+  --lufky-tab-enter-opacity: 0; /* Начальная видимость новой вкладки. */
+  --lufky-tab-select-opacity: 0.35; /* Начальная яркость выбранного фона. */
+  --lufky-folder-enter-offset: -5px; /* Папка появляется чуть сверху. */
+  --lufky-folder-enter-opacity: 0.20;
+  --lufky-search-enter-scale: 0.96; /* Поиск вырастает с 96% до 100%. */
+  --lufky-search-enter-opacity: 0.25;
+  --lufky-search-content-offset: 5px; /* Сдвиг поля и результатов при входе. */
+  --lufky-icon-hover-scale: 1.10; /* Иконка наведённой вкладки: 110%. */
+  --lufky-icon-hover-rotate: -3deg; /* Её поворот. */
+  --lufky-button-lift: -1px; /* Кнопка при наведении поднимается. */
+  --lufky-button-press-scale: 0.94; /* Кнопка при нажатии: 94%. */
+
+  /* ФОРМА И СВЕЧЕНИЕ
+     Больший radius делает углы круглее, 0px — прямоугольнее.
+     Размеры не меняют высоту строки вкладки. */
+  --lufky-tab-radius: 11px;
+  --lufky-field-radius: 10px; /* Свёрнутая адресная строка. */
+  --lufky-search-radius: 18px; /* Развёрнутый поиск. */
+  --lufky-result-radius: 10px;
+  --lufky-button-radius: 9px;
+  --lufky-tab-stripe-width: 3px; /* Цветная полоса выбранной вкладки. */
+  --lufky-glow-strength: 1; /* Внешние цветные тени: 0 — убрать,
+                              0.5 — слабее, 1 — обычные, 1.5 — ярче. */
+  --lufky-halo-min-opacity: 0.18; /* Самая тусклая фаза пульсации. */
+  --lufky-halo-max-opacity: 0.90; /* Самая яркая фаза пульсации. */
+  --lufky-glass-tint: 0.22; /* Тонировка стекла Windows, блок 8:
+                              0 — без тёмной заливки, 1 — сплошной фон. */
+
+  /* Фон окна: голубое пятно сверху слева, фиолетовое снизу справа.
+     Последний цвет #0e1422 — сплошная подложка, закрывающая прозрачность.
+     Готовый вариант с прозрачностью находится в конце файла. */
+  --lufky-window-background:
+    radial-gradient(ellipse at 0% 0%, rgba(70, 125, 190, 0.19), transparent 55%),
+    radial-gradient(ellipse at 100% 100%, rgba(115, 77, 178, 0.16), transparent 60%),
+    #0e1422;
+
+  /* Применяем палитру к встроенным элементам Zen: панели, поля, меню.
+     Названия переменных --zen-* / --toolbar-* лучше не менять. */
+  --zen-primary-color: var(--lufky-cyan) !important;
+  --zen-colors-primary: #202b46 !important;
+  --zen-colors-secondary: #1a2339 !important;
+  --zen-colors-tertiary: var(--lufky-surface) !important;
+  --zen-colors-border: var(--lufky-edge) !important;
+  --zen-main-browser-background: var(--lufky-window-background) !important;
+  --zen-main-browser-background-toolbar: var(--lufky-window-background) !important;
+  --zen-toolbar-element-bg: rgba(159, 179, 230, 0.07) !important;
+  --zen-toolbar-element-bg-hover: rgba(159, 179, 230, 0.12) !important;
+  --toolbarbutton-background-color-hover: color-mix(in srgb, var(--lufky-cyan) 10%, transparent) !important;
+  --toolbarbutton-background-color-active: color-mix(in srgb, var(--lufky-violet) 16%, transparent) !important;
+  --toolbox-textcolor: var(--lufky-text) !important;
+  --toolbar-color: var(--lufky-text) !important;
+  --toolbar-field-color: var(--lufky-text) !important;
+  --toolbar-field-text-color: var(--lufky-text) !important;
+  --toolbar-field-text-color-focus: var(--lufky-text) !important;
+  --toolbar-field-background-color: var(--lufky-surface) !important;
+  --toolbar-field-border-color-focus: var(--lufky-cyan) !important;
+  --arrowpanel-background: var(--lufky-surface) !important;
+  --arrowpanel-color: var(--lufky-text) !important;
+  --arrowpanel-border-color: var(--lufky-edge) !important;
+  --focus-outline-color: var(--lufky-cyan) !important;
+}
+
+/* Если панель справа, меняем направление, сохраняя расстояние из блока 1.
+   Здесь не нужно повторять значение --lufky-tab-shift. */
+:root[zen-right-side="true"] {
+  --lufky-tab-shift-direction: -1;
+}
+
+/* Тёмное оформление панелей и меню, даже если системная тема светлая. */
+#navigator-toolbox,
+#zen-appcontent-navbar-wrapper,
+#urlbar,
+panel,
+menupopup {
+  color-scheme: dark !important;
+  --toolbox-textcolor: var(--lufky-text) !important;
+  --toolbar-color: var(--lufky-text) !important;
+}
+
+/* Видимые слои фона окна и панели вкладок. */
+#zen-browser-background::after,
+#zen-toolbar-background::after {
+  background: var(--lufky-window-background) !important;
+}
+
+/* 2. ВКЛАДКИ
+   Двигаем только визуальный слой, чтобы не мешать перетаскиванию Zen.
+   movingtab отключает эффекты наведения на время перетаскивания.
+   Мод серых выгруженных вкладок продолжает работать. */
+
+#tabbrowser-tabs .tabbrowser-tab > .tab-stack {
+  /* Длительность сдвига берём из tab-hover-time с общим множителем. */
+  transition: transform calc(var(--lufky-tab-hover-time) * var(--lufky-motion-multiplier)) var(--lufky-ease) !important;
+}
+
+/* Обычная вкладка: 11px — скругление, 0.04 — заметность рамки. */
+#tabbrowser-tabs .tabbrowser-tab .tab-background {
+  border: none !important;
+  border-radius: var(--lufky-tab-radius) !important;
+  background: transparent !important;
+  box-shadow: inset 0 0 0 1px rgba(159, 179, 230, 0.04) !important;
+  transition:
+    background-color calc(var(--lufky-color-time) * var(--lufky-motion-multiplier)) ease,
+    box-shadow calc(var(--lufky-shadow-time) * var(--lufky-motion-multiplier)) ease !important;
+}
+
+/* Заливка, рамка и небольшая тень при наведении. */
+#tabbrowser-tabs:not([movingtab]) .tabbrowser-tab:hover .tab-background {
+  background: color-mix(in srgb, var(--lufky-cyan) 8%, transparent) !important;
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--lufky-cyan) 22%, transparent),
+    0 3px 12px rgba(0, 0, 0, 0.12) !important;
+}
+
+/* Сдвиг обычных вкладок и вкладок В ПАПКАХ в раскрытой панели.
+   Zen помечает содержимое папок как pinned, поэтому второй вариант
+   внутри :is включает их обратно. Essentials всё равно исключены.
+   Отдельные закреплённые вкладки вне папок не сдвигаются. */
+:root[zen-sidebar-expanded="true"]
+#tabbrowser-tabs[orient="vertical"]:not([movingtab])
+:is(.tabbrowser-tab:not([pinned]):not([zen-essential]),
+    zen-folder .tabbrowser-tab:not([zen-essential])):hover > .tab-stack {
+  transform: translateX(calc(var(--lufky-tab-shift) * var(--lufky-tab-shift-direction))) !important;
+}
+
+/* Нажатие: scale(0.985) уменьшает вкладку до 98.5% её размера. */
+#tabbrowser-tabs:not([movingtab])
+.tabbrowser-tab:active:not(:has(.tab-close-button:active)) > .tab-stack {
+  transform: scale(var(--lufky-tab-press-scale)) !important;
+}
+
+/* Активная вкладка: градиент и полоска цвета основного акцента.
+   color-mix(... 15%, transparent) оставляет 15% цвета.
+   Полоска и радиус настраиваются в блоке 1. */
+#tabbrowser-tabs .tabbrowser-tab:is([selected], [visuallyselected]) .tab-background {
+  background:
+    linear-gradient(110deg, color-mix(in srgb, var(--lufky-cyan) 15%, transparent), color-mix(in srgb, var(--lufky-violet) 19%, transparent)) !important;
+  box-shadow:
+    inset var(--lufky-tab-stripe-width) 0 0 var(--lufky-cyan),
+    inset 0 0 0 1px color-mix(in srgb, var(--lufky-cyan) 36%, transparent),
+    0 0 14px color-mix(in srgb, var(--lufky-cyan) 12%, transparent) !important;
+}
+
+/* При наведении на активную вкладку акцент становится фиолетовым. */
+#tabbrowser-tabs .tabbrowser-tab:is([selected], [visuallyselected]):hover .tab-background {
+  box-shadow:
+    inset var(--lufky-tab-stripe-width) 0 0 var(--lufky-violet),
+    inset 0 0 0 1px color-mix(in srgb, var(--lufky-violet) 52%, transparent),
+    0 0 18px color-mix(in srgb, var(--lufky-violet) 22%, transparent) !important;
+}
+
+/* Иконка сайта: скорость, увеличение и поворот при наведении.
+   scale(1.10) = 110%, rotate(-3deg) = поворот на -3 градуса. */
+#tabbrowser-tabs .tab-icon-image {
+  transition: transform calc(var(--lufky-tab-hover-time) * var(--lufky-motion-multiplier)) var(--lufky-ease) !important;
+}
+
+#tabbrowser-tabs:not([movingtab]) .tabbrowser-tab:hover .tab-icon-image {
+  transform: scale(var(--lufky-icon-hover-scale)) rotate(var(--lufky-icon-hover-rotate)) !important;
+}
+
+/* Название активной вкладки: 600 — насыщенность шрифта. */
+#tabbrowser-tabs .tabbrowser-tab:is([selected], [visuallyselected]) .tab-label {
+  color: var(--lufky-text) !important;
+  font-weight: 600 !important;
+}
+
+/* 3. ПАПКИ
+   Подсветка заголовков при наведении и при наличии активной вкладки.
+   Высоту раскрытия и движение иконок задаёт Zen.
+   Дополнительное проявление содержимого находится в блоке 7. */
+
+zen-folder > .tab-group-label-container::before {
+  box-shadow: inset 0 0 0 1px transparent;
+  transition: background-color calc(var(--lufky-color-time) * var(--lufky-motion-multiplier)) ease, box-shadow calc(var(--lufky-shadow-time) * var(--lufky-motion-multiplier)) ease !important;
+}
+
+zen-folder > .tab-group-label-container:hover::before,
+zen-folder[has-active] > .tab-group-label-container::before {
+  background: color-mix(in srgb, var(--lufky-violet) 8%, transparent) !important;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--lufky-violet) 18%, transparent) !important;
+}
+
+zen-folder > .tab-group-label-container .tab-group-folder-icon {
+  --zen-folder-stroke: var(--lufky-violet);
+}
+
+/* Движение SVG-деталей иконки папки задано встроенными стилями Zen.
+   Здесь меняем только длительность, сохраняя их трансформации.
+   Это не время изменения высоты списка вкладок. */
+zen-folder > .tab-group-label-container .tab-group-folder-icon svg :is(g, rect, path) {
+  transition-duration: calc(var(--lufky-folder-icon-time) * var(--lufky-motion-multiplier)) !important;
+}
+
+/* 4. АДРЕСНАЯ СТРОКА И ПЛАВАЮЩИЙ ПОИСК
+   Zen задаёт box-shadow с !important, поэтому анимация самой тени
+   через keyframes перекрывается. Здесь основная тень задана явно,
+   а фиолетовый ореол анимируется отдельным слоем ::after.
+   Его располагаем на фоне, вне контейнера, обрезающего содержимое.
+   Положение плавающей строки задаёт Zen; анимируем только её
+   фон и содержимое, без перемещения самого окна поиска. */
+
+#urlbar {
+  --urlbarview-text-color: var(--lufky-text) !important;
+  --urlbarview-text-color-selected: var(--lufky-text) !important;
+  --urlbarview-text-color-url: var(--lufky-muted) !important;
+}
+
+/* Свёрнутая адресная строка: фон, скругление 10px и тонкая рамка. */
+#urlbar > .urlbar-background {
+  background: rgba(159, 179, 230, 0.07) !important;
+  border-radius: var(--lufky-field-radius) !important;
+  box-shadow: inset 0 0 0 1px var(--lufky-edge) !important;
+  transition: background-color calc(var(--lufky-color-time) * var(--lufky-motion-multiplier)) ease, box-shadow calc(var(--lufky-shadow-time) * var(--lufky-motion-multiplier)) ease !important;
+}
+
+/* Наведение на свёрнутую строку. */
+#urlbar:not([breakout-extend]):hover > .urlbar-background {
+  background: color-mix(in srgb, var(--lufky-cyan) 8%, transparent) !important;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--lufky-cyan) 25%, transparent) !important;
+}
+
+/* Рамка основного акцента, когда строка в фокусе, но ещё не развёрнута. */
+#urlbar[focused]:not([breakout-extend]):not([suppress-focus-border]) > .urlbar-background {
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--lufky-cyan) 65%, transparent) !important;
+}
+
+/* Развёрнутый поиск: 18px — скругление всей панели.
+   overflow: visible позволяет внешнему свечению выходить за её края. */
+#urlbar:is([breakout-extend], [open][zen-floating-urlbar="true"]) {
+  border-radius: var(--lufky-search-radius) !important;
+  overflow: visible !important;
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* ЕДИНСТВЕННАЯ РАМКА ПОИСКА — на .urlbar-background ниже.
+   Само окно и контейнер ввода не рисуют второй контур.
+   Скругление ввода наследуется от окна, чтобы углы совпадали.
+   Видимый цветной контур фокуса остаётся на основном фоне. */
+#urlbar:is([breakout-extend], [open][zen-floating-urlbar="true"]) > .urlbar-input-container {
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  border-radius: inherit !important;
+}
+
+/* Zen может рисовать ещё один декоративный слой при смене
+   поисковой системы (например, при выборе Google).
+   Убираем только этот слой; наша рамка и внешний ореол остаются. */
+#urlbar:is([breakout-extend], [open][zen-floating-urlbar="true"])::before {
+  content: none !important;
+  animation: none !important;
+}
+
+/* Фон и основное свечение плавающего поиска.
+   --lufky-surface — его собственная подложка, независимая от фона окна.
+   Тени: внутренняя рамка; ореолы с размытием 16 / 42 / 76px;
+   последняя чёрная тень отделяет поиск от страницы. */
+#urlbar:is([breakout-extend], [open][zen-floating-urlbar="true"]) > .urlbar-background {
+  background:
+    radial-gradient(ellipse at 0% 0%, color-mix(in srgb, var(--lufky-cyan) 10%, transparent), transparent 60%),
+    radial-gradient(ellipse at 100% 100%, color-mix(in srgb, var(--lufky-violet) 10%, transparent), transparent 65%),
+    var(--lufky-surface) !important;
+  border: none !important;
+  border-radius: var(--lufky-search-radius) !important;
+  outline: none !important;
+  overflow: visible !important;
+  box-shadow:
+    inset 0 0 0 1.5px color-mix(in srgb, var(--lufky-cyan) 78%, transparent),
+    0 0 16px color-mix(in srgb, var(--lufky-cyan) calc(42% * var(--lufky-glow-strength)), transparent),
+    0 0 42px color-mix(in srgb, var(--lufky-cyan) calc(20% * var(--lufky-glow-strength)), transparent),
+    0 0 76px color-mix(in srgb, var(--lufky-violet) calc(20% * var(--lufky-glow-strength)), transparent),
+    0 24px 64px rgba(0, 0, 0, 0.48) !important;
+}
+
+/* Фиолетовый ореол: прозрачный декоративный слой.
+   Здесь только внешнее свечение, без второй внутренней рамки:
+   два контура смешивали цвета и были заметны в углах.
+   pointer-events: none пропускает клики к полю и результатам.
+   opacity: 0.45 — яркость слоя, когда анимация отключена. */
+#urlbar:is([breakout-extend], [open][zen-floating-urlbar="true"]) > .urlbar-background::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0.45;
+  box-shadow:
+    0 0 22px color-mix(in srgb, var(--lufky-violet) calc(56% * var(--lufky-glow-strength)), transparent),
+    0 0 58px color-mix(in srgb, var(--lufky-violet) calc(30% * var(--lufky-glow-strength)), transparent);
+}
+
+/* Ввод: цвет текста и мигающего курсора. */
+#urlbar .urlbar-input {
+  color: var(--lufky-text) !important;
+  caret-color: var(--lufky-cyan) !important;
+}
+
+/* Текст подсказки внутри пустого поля. */
+#urlbar .urlbar-input::placeholder {
+  color: var(--lufky-muted) !important;
+  opacity: 1 !important;
+}
+
+/* Результаты поиска: скругление и скорость смены подсветки. */
+#urlbar .urlbarView-row {
+  color: var(--lufky-text) !important;
+  border-radius: var(--lufky-result-radius) !important;
+  transition: background-color calc(var(--lufky-result-time) * var(--lufky-motion-multiplier)) ease !important;
+}
+
+#urlbar .urlbarView-row:hover {
+  background-color: color-mix(in srgb, var(--lufky-cyan) 7%, transparent) !important;
+}
+
+/* Выбранный результат, в том числе при перемещении стрелками клавиатуры. */
+#urlbar .urlbarView-row[selected] {
+  background-color: color-mix(in srgb, var(--lufky-cyan) 15%, transparent) !important;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--lufky-cyan) 24%, transparent) !important;
+}
+
+/* Второстепенный текст результатов: адрес, действие и разделитель. */
+#urlbar .urlbarView-url,
+#urlbar .urlbarView-action,
+#urlbar .urlbarView-title-separator::before {
+  color: var(--lufky-muted) !important;
+}
+
+#urlbar .urlbarView-row[selected] :is(.urlbarView-title, .urlbarView-url, .urlbarView-action),
+#urlbar .urlbarView-row[selected] .urlbarView-title-separator::before {
+  color: var(--lufky-text) !important;
+}
+
+/* 5. КНОПКИ ПАНЕЛЕЙ
+   Двигаем иконку; область нажатия остаётся на месте.
+   Скругление и время реакции берём из настроек блока 1.
+   Ниже: при наведении подъём на 1px, при нажатии размер 94%. */
+
+:is(#nav-bar, #zen-sidebar-top-buttons, #zen-sidebar-foot-buttons)
+toolbarbutton:not([disabled="true"]):not(.titlebar-button) > :is(.toolbarbutton-icon, .toolbarbutton-badge-stack) {
+  border-radius: var(--lufky-button-radius) !important;
+  transition:
+    transform calc(var(--lufky-button-time) * var(--lufky-motion-multiplier)) var(--lufky-ease),
+    background-color calc(var(--lufky-button-time) * var(--lufky-motion-multiplier)) ease !important;
+}
+
+:is(#nav-bar, #zen-sidebar-top-buttons, #zen-sidebar-foot-buttons)
+toolbarbutton:not([disabled="true"]):not(.titlebar-button):hover > :is(.toolbarbutton-icon, .toolbarbutton-badge-stack) {
+  transform: translateY(var(--lufky-button-lift)) !important;
+}
+
+:is(#nav-bar, #zen-sidebar-top-buttons, #zen-sidebar-foot-buttons)
+toolbarbutton:not([disabled="true"]):not(.titlebar-button):active > :is(.toolbarbutton-icon, .toolbarbutton-badge-stack) {
+  transform: scale(var(--lufky-button-press-scale)) !important;
+}
+
+/* 6. СТРОКА СОСТОЯНИЯ
+   Подсказка с адресом ссылки в нижнем углу использует палитру темы.
+   Положение и форму задаёт установленный мод Floating Status Bar. */
+#statuspanel-label {
+  background: var(--lufky-surface) !important;
+  color: var(--lufky-muted) !important;
+  border-color: var(--lufky-edge) !important;
+}
+
+/* 7. АНИМАЦИИ ИНТЕРФЕЙСА И УМЕНЬШЕНИЕ ДВИЖЕНИЯ
+
+   Здесь описан путь, который проходят элементы.
+   Время, амплитуда и начальная видимость находятся в блоке 1.
+   Названия keyframes должны совпадать с именами в animation.
+
+   translate — отдельный сдвиг, scale — отдельный масштаб.
+   Они складываются с transform, поэтому появление вкладки
+   не заменяет её transform при наведении.
+   Элементы визуально движутся, но не перестраивают весь список.
+
+   !important у animation защищает наши параметры от встроенного
+   сокращённого animation: ... в стилях Zen.
+   Внутри keyframes !important писать нельзя: такие свойства игнорируются.
+   Обычное свойство с !important тоже перекрывает одноимённый keyframe.
+
+   Наша кривая появления теперь ease-in-out: движение распределено
+   по времени ровнее. Для диагностического замедления используй
+   motion-multiplier: 3 и enter-ease: linear.
+
+   Всё ниже запускается при разрешённом движении в системе.
+   Обработка уменьшения движения находится сразу после эффектов. */
+@keyframes lufky-halo-breathe {
+  0%, 100% { opacity: var(--lufky-halo-min-opacity); }
+  50% { opacity: var(--lufky-halo-max-opacity); }
+}
+
+/* Новая вкладка мягко поднимается и увеличивается до обычного размера. */
+@keyframes lufky-tab-enter {
+  from {
+    opacity: var(--lufky-tab-enter-opacity);
+    translate: 0 var(--lufky-tab-enter-offset);
+    scale: var(--lufky-tab-enter-scale);
+  }
+  to { opacity: 1; translate: 0 0; scale: 1; }
+}
+
+/* При выборе вкладки её фон проявляется один раз. */
+@keyframes lufky-tab-select {
+  from { opacity: var(--lufky-tab-select-opacity); }
+  to { opacity: 1; }
+}
+
+/* Папка: лёгкое проявление и сдвиг содержимого вниз.
+   Высоту и отступы продолжает анимировать встроенный код Zen. */
+@keyframes lufky-folder-enter {
+  from {
+    opacity: var(--lufky-folder-enter-opacity);
+    translate: 0 var(--lufky-folder-enter-offset);
+  }
+  to { opacity: 1; translate: 0 0; }
+}
+
+/* Фон поиска: небольшой рост. Поля и результаты появляются отдельно. */
+@keyframes lufky-search-enter {
+  from {
+    opacity: var(--lufky-search-enter-opacity);
+    scale: var(--lufky-search-enter-scale);
+  }
+  to { opacity: 1; scale: 1; }
+}
+
+@keyframes lufky-search-content-enter {
+  from { opacity: 0; translate: 0 var(--lufky-search-content-offset); }
+  to { opacity: 1; translate: 0 0; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* fadein появляется при создании вкладки и может остаться на ней.
+     Это состояние, а не непрерывный сигнал «создана новая вкладка».
+     animation проигрывается один раз при первом совпадении селектора.
+     Когда movingtab снимается, совпадение может восстановиться и
+     эффект может повториться. При перетаскивании он отключён. */
+  #tabbrowser-tabs:not([movingtab])
+  :is(.tabbrowser-tab[fadein]:not([pinned]):not([zen-essential]),
+      zen-folder .tabbrowser-tab[fadein]:not([zen-essential])) > .tab-stack {
+    animation: lufky-tab-enter calc(var(--lufky-tab-enter-time) * var(--lufky-motion-multiplier)) var(--lufky-enter-ease) !important;
+  }
+
+  #tabbrowser-tabs .tabbrowser-tab:is([selected], [visuallyselected]) .tab-background {
+    animation: lufky-tab-select calc(var(--lufky-tab-select-time) * var(--lufky-motion-multiplier)) var(--lufky-enter-ease) !important;
+  }
+
+  /* При повторном раскрытии папки эффект запускается заново. */
+  #tabbrowser-tabs:not([movingtab])
+  zen-folder:not([collapsed]) > .tab-group-container {
+    animation: lufky-folder-enter calc(var(--lufky-folder-enter-time) * var(--lufky-motion-multiplier)) var(--lufky-enter-ease) !important;
+  }
+
+  #urlbar[breakout-extend] > .urlbar-background {
+    animation: lufky-search-enter calc(var(--lufky-search-enter-time) * var(--lufky-motion-multiplier)) var(--lufky-enter-ease) !important;
+  }
+
+  #urlbar[breakout-extend] > .urlbar-input-container {
+    animation: lufky-search-content-enter calc(var(--lufky-search-enter-time) * var(--lufky-motion-multiplier)) var(--lufky-enter-ease) !important;
+  }
+
+  #urlbar[breakout-extend] > .urlbarView {
+    animation: lufky-search-content-enter calc(var(--lufky-search-enter-time) * var(--lufky-motion-multiplier)) var(--lufky-enter-ease) calc(var(--lufky-search-results-delay) * var(--lufky-motion-multiplier)) backwards !important;
+  }
+
+  #urlbar:is([breakout-extend], [open][zen-floating-urlbar="true"]) > .urlbar-background::after {
+    animation: lufky-halo-breathe calc(var(--lufky-halo-period) * var(--lufky-motion-multiplier)) ease-in-out infinite;
+  }
+
+  /* Ставим пульсацию на паузу, когда окно браузера неактивно. */
+  :root:-moz-window-inactive #urlbar > .urlbar-background::after {
+    animation-play-state: paused;
+  }
+}
+
+/* Если в системе включено уменьшение движения, отключаем движения
+   и пульсацию. Цвета, рамки и постоянное свечение сохраняются.
+   #main-window увеличивает приоритет правил относительно наведения. */
+@media (prefers-reduced-motion: reduce) {
+  #main-window #tabbrowser-tabs .tab-stack,
+  #main-window #tabbrowser-tabs .tab-background,
+  #main-window #tabbrowser-tabs .tab-icon-image,
+  #main-window zen-folder > .tab-group-label-container::before,
+  #main-window zen-folder > .tab-group-container,
+  #main-window zen-folder .tab-group-folder-icon svg :is(g, rect, path),
+  #main-window #urlbar > .urlbar-background,
+  #main-window #urlbar > .urlbar-background::after,
+  #main-window #urlbar > .urlbar-input-container,
+  #main-window #urlbar > .urlbarView,
+  #main-window #urlbar .urlbarView-row,
+  #main-window :is(#nav-bar, #zen-sidebar-top-buttons, #zen-sidebar-foot-buttons)
+  toolbarbutton > :is(.toolbarbutton-icon, .toolbarbutton-badge-stack) {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  #main-window #tabbrowser-tabs .tabbrowser-tab > .tab-stack,
+  #main-window #tabbrowser-tabs .tabbrowser-tab:hover .tab-icon-image,
+  #main-window :is(#nav-bar, #zen-sidebar-top-buttons, #zen-sidebar-foot-buttons)
+  toolbarbutton > :is(.toolbarbutton-icon, .toolbarbutton-badge-stack) {
+    transform: none !important;
+  }
+}
+
+/* =========================================================
+   8. ПРОЗРАЧНОСТЬ ПАНЕЛЕЙ В WINDOWS 11 — ВКЛЮЧЕНА
+
+   Блок ниже уже включён. Он убирает сплошной фон интерфейса.
+
+   Перед включением проверь about:config:
+     widget.windows.mica = true
+     widget.windows.mica.toplevel-backdrop = 2
+     browser.tabs.allow_transparent_browser = true
+   2 — Acrylic: размытое стекло с содержимым за окном.
+   1 — Mica: оформление на основе обоев рабочего стола.
+   В Windows включи «Параметры → Персонализация → Цвета →
+   Эффекты прозрачности», затем полностью перезапусти Zen.
+
+   CSS убирает сплошную подложку интерфейса, системный эффект
+   рисует Windows. --lufky-glass-tint в блоке 1 задаёт плотность
+   тёмной тонировки: 0 — без неё, 1 — непрозрачно.
+   Прозрачность сайтов разрешена только правилами userContent.css
+   для Google, YouTube и Twitch. У остальных остаётся обычный фон.
+   Прозрачность плавающего поиска настраивается в блоке 4.
+   Не используй opacity для всего окна: побледнеет также текст.
+   ========================================================= */
+
+
+@media (-moz-windows-mica) {
+  :root {
+    --lufky-window-background:
+      radial-gradient(ellipse at 0% 0%, rgba(70, 125, 190, 0.12), transparent 55%),
+      radial-gradient(ellipse at 100% 100%, rgba(115, 77, 178, 0.10), transparent 60%),
+      rgba(14, 20, 34, var(--lufky-glass-tint));
+  }
+
+  #zen-main-app-wrapper {
+    background: transparent !important;
+  }
+
+  #zen-browser-background::before,
+  #zen-toolbar-background::before {
+    background: transparent !important;
+  }
+}
+
+/* 9. КОНТЕЙНЕР СТРАНИЦЫ
+   Позволяет увидеть стекло через разрешённые сайты.
+   Какие сайты прозрачны, задаёт userContent.css: остальные рисуют
+   свой фон или обычную непрозрачную подложку Canvas. */
+@media -moz-pref("browser.tabs.allow_transparent_browser") {
+  :root {
+    --tabpanel-background-color: transparent !important;
+  }
+
+  #zen-appcontent-wrapper,
+  #zen-tabbox-wrapper,
+  #tabbrowser-tabbox,
+  #tabbrowser-tabpanels,
+  #tabbrowser-tabpanels .browserSidebarContainer,
+  #tabbrowser-tabpanels .browserContainer,
+  #tabbrowser-tabpanels .browserStack,
+  #tabbrowser-tabpanels browser[type="content"] {
+    background: transparent !important;
+  }
+}
+
+/* =========================================================
+   10. ПРОВЕРКА: ПОЧЕМУ ВРЕМЯ МОГЛО НЕ ИЗМЕНИТЬСЯ
+   ========================================================= */
+
+/*
+   А. НЕ ТОТ ЭФФЕКТ
+   tab-enter-time — появление НОВОЙ вкладки.
+   tab-hover-time — реакция на мышь у УЖЕ ОТКРЫТОЙ вкладки.
+   tab-select-time — фон вкладки после переключения.
+   folder-enter-time — прозрачность/сдвиг содержимого папки.
+   folder-icon-time — движение деталей её иконки.
+   search-enter-time — вход поиска.
+   halo-period — повторяющееся свечение открытого поиска.
+   color-time / shadow-time — переход между заливками и тенями.
+
+   Б. ФАЙЛ НЕ ПЕРЕЧИТАН
+   CSS профиля загружается при запуске.
+   Ctrl+S сохраняет файл, но не применяет его к работающему Zen.
+   Перезапусти браузер полностью. Папка chrome должна находиться
+   именно в активном профиле, открытом через about:profiles.
+
+   В. ДВИЖЕНИЕ ОТКЛЮЧЕНО СИСТЕМОЙ
+   Windows: Параметры → Специальные возможности → Визуальные эффекты
+   → Эффекты анимации.
+   Firefox/Zen передаёт это в prefers-reduced-motion.
+   Если уменьшение движения включено, блок 7 отключает эффекты.
+   Для диагностики в about:config есть ui.prefersReducedMotion:
+   0 — движение разрешено, 1 — уменьшение движения.
+   Если такого пользовательского значения нет, работает система.
+   После проверки сбрось ручное значение, чтобы снова следовать Windows.
+
+   Г. СЛИШКОМ БЫСТРАЯ КРИВАЯ
+   cubic-bezier(0.22, 1, 0.36, 1) быстро проходит основную часть пути.
+   За оставшееся время движение едва заметно.
+   Для входа теперь отдельная enter-ease: ease-in-out.
+   Для проверки поставь linear и 2000ms — разница очевиднее.
+
+   Д. СЛИШКОМ МАЛЕНЬКОЕ РАССТОЯНИЕ
+   За 1 секунду движение на 3px всё равно выглядит слабо.
+   Попробуй tab-shift: 10px или tab-enter-offset: 20px.
+   После проверки верни небольшие значения, если мешает пользоваться.
+
+   Е. ЭТО ВСТРОЕННОЕ ДВИЖЕНИЕ ZEN
+   CSS добавляет эффекты поверх поведения браузера.
+   Высоту папки, раскладку вкладок, перетаскивание, компактную панель
+   и часть положения поиска задаёт встроенный код.
+   Наши переменные не обещают изменить время этих операций.
+
+   Ж. ПЕРЕКРЫТИЕ ПРАВИЛОМ
+   Ищи одинаковую переменную или animation ниже в файле.
+   При одинаковом приоритете более позднее правило побеждает.
+   Активный мод тоже может менять это свойство.
+   zen-themes.css генерируется Zen; вручную его править неудобно,
+   потому что браузер может перезаписать изменения.
+
+   БЫСТРЫЙ ТЕСТ:
+   --lufky-motion-multiplier: 3;
+   --lufky-enter-ease: linear;
+   Полностью перезапусти Zen.
+   Наведи мышь на вкладку; убери; создай новую через Ctrl+T.
+   Раскрой ранее свёрнутую папку. Открой поиск через Ctrl+L.
+   После проверки верни multiplier: 1.
+*/
+
+/* =========================================================
+   11. СПРАВОЧНИК CSS ДЛЯ ЭТОЙ ТЕМЫ
+   ========================================================= */
+
+/*
+   11.1. СЕЛЕКТОР — ЧТО МЫ МЕНЯЕМ
+
+   :root
+     Корневой элемент окна. Настройки отсюда наследуют дочерние элементы.
+
+   #urlbar
+     Один элемент с id="urlbar": адресная строка.
+
+   .tabbrowser-tab
+     Все элементы с таким классом: вкладки.
+
+   zen-folder
+     Элементы папок Zen.
+
+   .tabbrowser-tab .tab-background
+     Фон внутри вкладки на любой глубине.
+
+   .tabbrowser-tab > .tab-stack
+     Только непосредственный дочерний визуальный контейнер вкладки.
+
+   :hover
+     Мышь находится над элементом.
+
+   :active
+     Элемент нажат мышью. Это не то же, что выбранная вкладка.
+
+   :focus / :focus-within
+     Элемент / его потомок имеет клавиатурный фокус.
+
+   [selected] / [visuallyselected]
+     Вкладка с атрибутом выбора.
+     Здесь проверяется наличие атрибута, а не его текстовое значение.
+
+   [pinned]
+     Закреплённая вкладка. В Zen такой атрибут имеют и вкладки в папках.
+
+   [zen-essential]
+     Вкладка из Essentials.
+
+   [collapsed]
+     Свёрнутая папка.
+
+   :not([pinned])
+     Исключить закреплённые вкладки.
+
+   :is([selected], [visuallyselected])
+     Совпасть с любым из двух состояний.
+
+   :has(.tab-close-button:active)
+     Родитель содержит нажатый крестик.
+     Наше правило нажатия исключает это состояние.
+
+   ::before / ::after
+     Декоративные псевдоэлементы, а не реальные узлы страницы.
+     Для создания обычно нужен content: "".
+     Zen уже использует некоторые такие слои: прежде чем их занять,
+     проверь, не исчезнут ли встроенная рамка или фон.
+
+   Запятая между селекторами применяет одно правило к каждому.
+   Пробел ищет потомка; знак > ищет прямого ребёнка.
+*/
+
+/*
+   11.2. СВОЙСТВА — НА ЧТО ОНИ ВЛИЯЮТ
+
+   color
+     Цвет текста, иногда и иконки, если она использует currentColor.
+
+   background-color
+     Только заливка. Существующая фоновая картинка остаётся.
+
+   background
+     Сокращение: сбрасывает и заливку, и картинку, и другие параметры.
+     background: transparent уберёт также градиент элемента.
+
+   border
+     Рамка, которая может участвовать в размерах элемента.
+
+   outline
+     Контур вне рамки. Обычно не меняет размер.
+     Не убирай все контуры фокуса: они нужны для навигации клавиатурой.
+
+   box-shadow
+     Тень снаружи или внутри. Размер элемента не меняет.
+     Параметры: сдвиг X, сдвиг Y, размытие, расширение, цвет.
+     Пример: 0 8px 24px -4px rgba(0, 0, 0, 0.4).
+     inset 3px 0 0 цвет — внутренняя полоса у левого края.
+     Несколько теней разделяются запятыми.
+
+   border-radius
+     Радиус скругления. Сам по себе не обрезает дочерние картинки.
+
+   overflow: hidden / clip
+     Обрезает содержимое и может обрезать внешний ореол.
+     overflow: visible позволяет эффекту выходить за края.
+     Не ставь visible на весь список вкладок: пострадает прокрутка.
+
+   opacity
+     Видимость ВСЕГО элемента вместе с его текстом и потомками.
+     Для прозрачной подложки с чётким текстом меняй цвет фона,
+     а не opacity у всего контейнера.
+
+   transform: translateX(3px)
+     Визуальный сдвиг, соседние строки не перестраиваются.
+
+   transform: scale(1.05)
+     Увеличение до 105%. Может пересечь соседние элементы.
+
+   transform: rotate(-3deg)
+     Поворот против часовой стрелки.
+
+   translate / scale / rotate
+     Отдельные свойства трансформации. Удобно разделять эффекты.
+     В этой теме вход вкладки использует translate/scale,
+     а наведение — transform.
+
+   filter
+     Обработка целого элемента: яркость, размытие, серый цвет.
+     Фильтр родителя затрагивает и текст внутри.
+     Мод выгруженных вкладок уже использует grayscale.
+
+   backdrop-filter
+     Обработка того, что видно за полупрозрачным элементом.
+     Это не включает системную прозрачность окна само по себе.
+     Blur на огромных слоях может увеличить нагрузку.
+
+   pointer-events: none
+     Слой не перехватывает клики. Используется у ореола поиска.
+
+   display: none
+     Полностью убирает элемент из раскладки.
+     Первое правило файла применяет это к крестикам внутри папок.
+*/
+
+/*
+   11.3. TRANSITION И ANIMATION — КОГДА ОНИ РАБОТАЮТ
+
+   transition: transform 400ms ease;
+     Следит за изменением transform у уже существующего элемента.
+     Нужны два разных значения: обычное и при наведении.
+     При уходе мыши переход идёт обратно.
+
+   @keyframes имя { from {...} to {...} }
+     Описывает начало и конец отдельной анимации.
+
+   animation: имя 700ms ease-in-out;
+     Проигрывает эту последовательность один раз.
+
+   animation: имя 4s ease-in-out infinite;
+     Повторяет бесконечно.
+
+   backwards
+     Применяет первый кадр во время задержки перед стартом.
+     У результатов поиска есть небольшая задержка, поэтому
+     они не вспыхивают до начала своего проявления.
+
+   forwards
+     Оставляет последний кадр после завершения.
+     Здесь входы заканчиваются обычными значениями и не требуют его.
+
+   animation-delay
+     Задержка перед запуском. Это отдельное время.
+
+   animation-play-state: paused
+     Приостанавливает текущий эффект.
+     Пульсация поиска приостановлена у неактивного окна.
+
+   animation: none
+     Убирает анимацию. Если состояние совпадёт заново после её
+     удаления, браузер может начать проигрывание с первого кадра.
+
+   Не анимируй transition: all без необходимости:
+   он захватит размеры, отступы и другие изменения самого Zen.
+   Лучше перечислить только нужные свойства.
+*/
+
+/*
+   11.4. ПРИОРИТЕТ, ПЕРЕМЕННЫЕ И ОШИБКИ
+
+   var(--lufky-cyan)
+     Берёт текущее значение настройки.
+
+   var(--моя-настройка, 10px)
+     Если настройка отсутствует, использует запасные 10px.
+
+   calc(240ms * 2)
+     Получает 480ms. Множитель без единиц.
+     Нельзя складывать 1s и 3px: у них разные типы величин.
+
+   color-mix(in srgb, var(--lufky-cyan) 15%, transparent)
+     Получает полупрозрачный акцент.
+     Поэтому новый цвет в блоке 1 теперь меняет и производные заливки.
+
+   Правила ниже могут переопределять правила выше.
+   Но более конкретный селектор имеет больший приоритет.
+   В userChrome.css !important помогает перебить стили самого браузера.
+   У !important также важны конкретность и порядок правил.
+
+   НЕ ПИШИ:
+     --lufky-tab-enter-time: 1000;
+   ПИШИ:
+     --lufky-tab-enter-time: 1000ms;
+
+   НЕ ПИШИ:
+     --lufky-tab-enter-time: "1000ms";
+   Строка в кавычках не является CSS-временем.
+
+   НЕ ПИШИ:
+     --lufky-tab-shift: var(--lufky-tab-shift);
+   Такая ссылка зациклена и не даёт значения.
+
+   Проверяй ; после каждого свойства и парные { }.
+   Один неверный параметр сокращённого animation может
+   отключить всю эту строку, даже если имя keyframes правильное.
+
+   Если внесённые изменения мешают:
+   закомментируй только новый блок, перезапусти Zen и проверь снова.
+   Резервные файлы с расширением .bak автоматически не загружаются.
+*/
+
+/* =========================================================
+   12. ГОТОВЫЕ ДОПОЛНИТЕЛЬНЫЕ ЭФФЕКТЫ — ПОКА ВЫКЛЮЧЕНЫ
+
+   Каждый пример ниже находится в своём комментарии.
+   Чтобы включить, убери только открывающую и закрывающую
+   пару символов вокруг КОДА выбранного примера.
+   Подпись перед ним — отдельный комментарий, её оставь.
+   Проверяй один пример за раз.
+   ========================================================= */
+
+/* 12.1. Медленное движение для проверки.
+   Перезапусти, создай новую вкладку и наведи мышь на существующую.
+   Множитель 2 замедляет все эффекты темы вдвое.
+   linear делает вход равномерным по всей длительности. */
+/*
+:root {
+  --lufky-motion-multiplier: 2;
+  --lufky-enter-ease: linear;
+  --lufky-tab-shift: 8px;
+  --lufky-tab-enter-offset: 18px;
+}
+*/
+
+/* 12.2. Более спокойный вариант.
+   Быстрый вход и небольшие перемещения; пульсация очень слабая. */
+/*
+:root {
+  --lufky-tab-enter-time: 300ms;
+  --lufky-folder-enter-time: 350ms;
+  --lufky-search-enter-time: 250ms;
+  --lufky-tab-shift: 1px;
+  --lufky-icon-hover-rotate: 0deg;
+  --lufky-icon-hover-scale: 1.04;
+  --lufky-halo-min-opacity: 0.25;
+  --lufky-halo-max-opacity: 0.40;
+}
+*/
+
+/* 12.3. Другая палитра.
+   Меняет и основные, и производные акцентные цвета.
+   Фон стекла пока содержит собственные цвета пятен из блока 8. */
+/*
+:root {
+  --lufky-cyan: #ff91b8;
+  --lufky-violet: #ffc875;
+  --lufky-text: #fff2f6;
+  --lufky-muted: #c0a7b5;
+  --lufky-surface: #241a25;
+}
+*/
+
+/* 12.4. Круглее и ярче.
+   Скругление почти как у капсулы; усиливается внешний ореол.
+   Значение glow-strength лучше держать в пределах 0–1.5. */
+/*
+:root {
+  --lufky-tab-radius: 18px;
+  --lufky-search-radius: 24px;
+  --lufky-result-radius: 14px;
+  --lufky-glow-strength: 1.3;
+}
+*/
+
+/* 12.5. Дыхание фона выбранной вкладки.
+   Непрерывный эффект заменит обычное однократное проявление её фона.
+   Пульсирует только подложка: название и иконка не исчезают.
+   Разница яркости маленькая, период 3s. */
+/*
+@keyframes my-selected-tab-breathe {
+  0%, 100% { opacity: 0.75; }
+  50% { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  #tabbrowser-tabs .tabbrowser-tab:is([selected], [visuallyselected]) .tab-background {
+    animation: my-selected-tab-breathe 3s ease-in-out infinite !important;
+  }
+
+  :root:-moz-window-inactive #tabbrowser-tabs .tab-background {
+    animation-play-state: paused !important;
+  }
+}
+*/
+
+/* 12.6. Небольшой отскок новой вкладки.
+   Меняет траекторию входа; время берётся из tab-enter-time.
+   70% — точка, где вкладка немного перескакивает конечную позицию.
+   После 100% возвращается к обычному размеру и положению. */
+/*
+@keyframes my-tab-bounce {
+  0% { opacity: 0; translate: 0 14px; scale: 0.95; }
+  70% { opacity: 1; translate: 0 -2px; scale: 1.015; }
+  100% { opacity: 1; translate: 0 0; scale: 1; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  #tabbrowser-tabs:not([movingtab])
+  :is(.tabbrowser-tab[fadein]:not([pinned]):not([zen-essential]),
+      zen-folder .tabbrowser-tab[fadein]:not([zen-essential])) > .tab-stack {
+    animation: my-tab-bounce
+      calc(var(--lufky-tab-enter-time) * var(--lufky-motion-multiplier))
+      ease-out !important;
+  }
+}
+*/
+
+/* 12.7. Более плотное стекло.
+   Оставляет системное размытие, но затемняет фон.
+   Работает внутри активного условия -moz-windows-mica из блока 8. */
+/*
+:root {
+  --lufky-glass-tint: 0.45;
+}
+*/
+
+/* 12.8. Убрать движение только у иконок сайтов.
+   Сдвиг вкладок и остальные эффекты сохраняются. */
+/*
+#main-window #tabbrowser-tabs .tab-icon-image {
+  transform: none !important;
+  transition: none !important;
+}
+*/
+
+/* 12.9. Курсор навёлся на заголовок папки — подпись стала акцентной.
+   Только цвет, без изменения размера и положения. */
+/*
+zen-folder > .tab-group-label-container:hover .tab-group-label {
+  color: var(--lufky-violet) !important;
+}
+*/
+
+/* 12.10. Отключить пульсацию поиска, оставив постоянный ореол.
+   Однократное появление поиска при открытии продолжит работать. */
+/*
+#main-window #urlbar > .urlbar-background::after {
+  animation: none !important;
+  opacity: 0.45;
+}
+*/
+
+/* 12.11. Отключить только вход новой вкладки.
+   Наведение, нажатие и выбор вкладки остаются. */
+/*
+#main-window #tabbrowser-tabs .tab-stack {
+  animation: none !important;
+}
+*/
+
+/* 12.12. Новое движение кнопки: чуть сильнее подъём.
+   Параметры меняются без копирования сложного селектора из блока 5. */
+/*
+:root {
+  --lufky-button-lift: -3px;
+  --lufky-button-press-scale: 0.90;
+  --lufky-button-time: 300ms;
+}
+*/
+
+/* =========================================================
+   13. ТВОИ ПРАВИЛА
+   Добавляй изменения ниже: их удобно найти и быстро отключить.
+   Первое правило файла выше оставь на месте.
+   Формат: селектор { свойство: значение !important; }
+
+   Можно объявлять :root несколько раз.
+   Например, новое значение уже существующей переменной здесь
+   переопределит такое же значение из блока 1.
+   Для стекла учти: сам background переопределяется блоком 8,
+   поэтому проще менять --lufky-glass-tint.
+   ========================================================= */

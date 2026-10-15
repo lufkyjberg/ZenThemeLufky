@@ -1,0 +1,518 @@
+/* lufky — ПРОЗРАЧНОСТЬ GOOGLE, YOUTUBE И TWITCH.
+   Общие прозрачные фоны для всех сайтов отключены.
+   GitHub, Ozon и остальные сайты сохраняют собственные стили.
+   Анимации интерфейса находятся в userChrome.css.
+   После изменения полностью перезапусти Zen. */
+
+/* Обычная непрозрачная подложка, если сайт не задаёт фон сам.
+   Без !important: собственный цвет фона сайта имеет приоритет.
+   Важно: правило действует и ВНУТРИ iframe. Поэтому служебные
+   прозрачные слои Twitch исключены отдельным блоком ниже. */
+@-moz-document url-prefix("https://"), url-prefix("http://") {
+  html {
+    background-color: Canvas;
+  }
+}
+
+/* Только разрешённые сайты получают прозрачный фон документа
+   и корневого контейнера. Общего прозрачного правила больше нет. */
+@-moz-document domain("google.com"), domain("google.ru"),
+               domain("google.de"), domain("google.co.uk"),
+               domain("youtube.com"), domain("twitch.tv") {
+  html,
+  body,
+  body > :is(#root, #app, #__next, #__nuxt) {
+    background: transparent !important;
+  }
+}
+
+/* 2. GOOGLE — главная страница и поиск.
+   domain("google.com") также включает поддомены этого домена.
+   При необходимости добавь свой региональный домен в список ниже. */
+@-moz-document domain("google.com"), domain("google.ru"),
+               domain("google.de"), domain("google.co.uk") {
+  /* Основная заливка страницы и контейнеры поиска.
+     Снимаем фон только с этих элементов, не со всех кнопок и карточек. */
+  html,
+  body,
+  .L3eUgb,
+  #main,
+  #cnt,
+  #rcnt,
+  #center_col,
+  #search,
+  #rso {
+    background: transparent !important;
+  }
+
+  /* Нижняя панель: убираем заливку и горизонтальный разделитель.
+     role="contentinfo" проверен в текущей разметке Google;
+     старые селекторы оставлены для других вариантов страницы.
+     Два уровня div охватывают строку страны и контейнеры ссылок. */
+  [role="contentinfo"],
+  [role="contentinfo"] > div,
+  [role="contentinfo"] > div > div,
+  #fbar,
+  #fbar > div,
+  #sfooter,
+  #sfooter > div,
+  .c93Gbe,
+  .uU7dJb {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+}
+
+/* 3. YOUTUBE
+   Сайт использует собственные цвета и элементы ytd-*.
+   Делаем прозрачными страницу, шапку, боковое меню и фон ленты.
+   Плеер, превью, кнопки и всплывающие меню сохраняют оформление. */
+@-moz-document domain("youtube.com") {
+  html {
+    --yt-spec-base-background: transparent !important;
+    --yt-main-app-background: transparent !important;
+    --yt-deprecated-general-background-a: transparent !important;
+    --yt-deprecated-general-background-b: transparent !important;
+    --yt-deprecated-general-background-c: transparent !important;
+  }
+
+  ytd-app,
+  ytd-page-manager,
+  ytd-browse,
+  ytd-watch-flexy,
+  ytd-search,
+  ytd-masthead,
+  ytd-mini-guide-renderer,
+  ytd-guide-renderer,
+  #guide-content,
+  #guide-inner-content,
+  #frosted-glass,
+  #chips-wrapper,
+  #header.ytd-rich-grid-renderer {
+    background: transparent !important;
+  }
+
+  /* Чёрная подложка плеера полезна для видео с полосами по краям. */
+  .html5-video-player {
+    background-color: #000 !important;
+  }
+}
+
+/* 4. TWITCH
+   Прозрачность относится к колонкам страницы и чату.
+   Сам проигрыватель должен иметь непрозрачный чёрный фон:
+   до загрузки видео, при ошибке, в режиме театра и при паузе.
+   Плеер также наследует цвета сайта, поэтому ниже восстановлены
+   его локальные переменные. Меню и элементы управления не очищаем. */
+@-moz-document domain("twitch.tv") {
+  :root,
+  .tw-root--theme-dark,
+  .tw-root--theme-light {
+    --color-background-body: transparent !important;
+    --color-background-base: transparent !important;
+  }
+
+  /* У страницы канала и правой колонки есть свои сплошные заливки,
+     независимые от фона html/body. Убираем и их, иначе чат и область
+     под трансляцией закрывают стекло. Видеоплеер остаётся чёрным
+     по отдельному правилу ниже; iframe накладки — прозрачным. */
+  .twilight-main,
+  .twilight,
+  .side-nav,
+  [data-a-target="root-scroller"],
+  [data-test-selector="side-nav"],
+  .channel-root,
+  .channel-root__main,
+  .channel-root__main--with-chat,
+  .channel-root__main--without-chat,
+  .channel-root__right-column,
+  .channel-root__info,
+  .chat-room,
+  .chat-scrollable-area__message-container,
+  .stream-chat-header {
+    background-color: transparent !important;
+  }
+
+  /* Шапка с лёгкой тонировкой; 0.20 — её непрозрачность. */
+  .top-nav {
+    background-color: rgba(14, 20, 34, 0.20) !important;
+  }
+
+  /* РЕЖИМ ТЕАТРА (Alt+T): убираем копию панели ЗА проигрывателем.
+     Twitch оставляет обычную информацию о канале на странице,
+     а видео и чат размещает поверх неё. Через прозрачный чат стали
+     видны старые кнопки подписки, счётчик зрителей и меню этой панели.
+
+     visibility: hidden скрывает задний слой и исключает его кнопки
+     из фокуса, сохраняя размеры страницы и положение прокрутки.
+     Не заменяй на opacity: 0 — невидимые кнопки останутся активными.
+     Рабочая .theatre-social-panel находится поверх видео отдельно:
+     её кнопки появляются при наведении мыши на проигрыватель.
+     При выходе из театра Twitch убирает класс --theatre-mode,
+     поэтому обычная панель автоматически становится видимой.
+     Чтобы отменить исправление, закомментируй только это правило. */
+  .channel-root__scroll-area--theatre-mode .channel-info-content {
+    visibility: hidden !important;
+  }
+
+  /* Диалоги остаются с читаемой подложкой. */
+  .tw-root--theme-dark [role="dialog"] {
+    background-color: #18181b !important;
+  }
+
+  .tw-root--theme-light [role="dialog"] {
+    background-color: #fff !important;
+  }
+  /* ПРОИГРЫВАТЕЛЬ — ЭТИ ПОДЛОЖКИ НЕ ДЕЛАЙ ПРОЗРАЧНЫМИ.
+     Внешний контейнер страхует начальную загрузку, внутренний — видео.
+     Не применяем background к каждому потомку: это закрасило бы
+     прозрачные кнопки и градиенты поверх трансляции.
+     color-scheme: dark задаёт тёмные встроенные элементы плеера. */
+  .channel-root__player,
+  .channel-page__video-player,
+  .video-player,
+  .video-player__container,
+  [data-a-target="video-player"] {
+    --color-background-body: #000 !important;
+    --color-background-base: #000 !important;
+    background-color: #000 !important;
+    color-scheme: dark !important;
+  }
+
+  /* Подложка, на которую выводится видео или загрузочная заглушка.
+     Фоновые изображения канала и офлайн-постеры не удаляем. */
+  .channel-root__player-background,
+  .video-player video {
+    background-color: #000 !important;
+  }
+
+}
+
+/* 5. ВСТРОЕННЫЙ ПЛЕЕР TWITCH
+   domain("twitch.tv") включает и player.twitch.tv.
+   В отдельном документе встроенного плеера прозрачность не нужна.
+   Это правило расположено ПОСЛЕ разрешения прозрачности и имеет
+   такой же приоритет для html/body: здесь побеждает чёрный фон.
+   Обычная страница www.twitch.tv продолжает быть прозрачной. */
+@-moz-document domain("player.twitch.tv") {
+  :root,
+  html,
+  body,
+  body > :is(#root, #app, #__next, #__nuxt) {
+    --color-background-body: #000 !important;
+    --color-background-base: #000 !important;
+    background: #000 !important;
+    color-scheme: dark !important;
+  }
+}
+
+/* 6. ПРОЗРАЧНЫЕ НАКЛАДКИ РАСШИРЕНИЙ TWITCH — ПОВЕРХ ВИДЕО
+
+   ext-twitch.tv — отдельный домен, он НЕ входит в domain("twitch.tv").
+   Twitch загружает supervisor.ext-twitch.tv и сами расширения
+   в iframe над проигрывателем. Общая подложка Canvas из начала
+   файла делала такой iframe белым и закрывала видео, хотя под ним
+   уже был чёрный фон плеера.
+
+   Здесь исключаем только фон ДОКУМЕНТА накладки. Кнопки, карточки,
+   текст, меню расширения и их собственные заливки не трогаем.
+   Это не правило для самого видео и не причина убирать расширение.
+
+   color-scheme: normal у документа и его iframe сохраняет одинаковую
+   схему встроенного холста. При разных схемах Gecko может добавить
+   собственную непрозрачную заливку даже к прозрачному iframe. */
+@-moz-document domain("ext-twitch.tv") {
+  html,
+  body {
+    background: transparent !important;
+    color-scheme: normal !important;
+  }
+
+  iframe {
+    background: transparent !important;
+    color-scheme: normal !important;
+  }
+}
+
+/* Сам iframe накладки также не получает заливку или принудительно
+   тёмную схему от родительского чёрного контейнера плеера.
+   Другие iframe (реклама, чат, встроенный видеоплеер) не затрагиваются.
+   Не скрываем накладки через display:none: они остаются рабочими. */
+@-moz-document domain("twitch.tv") {
+  iframe[src^="https://supervisor.ext-twitch.tv/"],
+  iframe[src^="https://ext-twitch.tv/"],
+  iframe[src*=".ext-twitch.tv/"] {
+    background: transparent !important;
+    color-scheme: normal !important;
+  }
+}
+
+/* КАК ДОБАВЛЯТЬ НОВЫЕ ПРАВИЛА ДЛЯ САЙТОВ
+   Этот файл влияет на содержимое вкладок, userChrome.css — на панели.
+   Сначала ограничь правило нужным доменом через @-moz-document.
+   Затем выбери конкретный контейнер в инспекторе страницы.
+   Не используй * { background: transparent !important; }:
+   исчезнут заливки меню, подсказок, кнопок и подложки проигрывателей.
+   Не добавляй чужой домен в общий список прозрачности без проверки.
+   Чтобы отключить один сайт, убери его из общего списка в начале
+   файла И отключи его отдельный блок правил.
+   После сохранения полностью перезапусти Zen. */
+
+/* =========================================================
+   7. ZEN TAB SEARCH / FUZZY — ПОИСК ВКЛАДОК ПО CTRL+D
+
+   Расширение Zen Tab Search 1.2 создаёт окно прямо внутри сайта,
+   поэтому его оформление находится в userContent.css.
+   Все правила ограничены id="zen-tab-omnibar-overlay".
+   Обычные поля и списки сайтов они не меняют.
+
+   Палитра повторяет lufky из userChrome.css. Интерфейс браузера
+   и документ сайта не наследуют переменные друг от друга:
+   если меняешь основные цвета в userChrome.css, повтори их здесь.
+   Архив расширения не меняем: переустановка расширения не нужна.
+   Сохрани файл и полностью перезапусти Zen.
+   ========================================================= */
+
+#zen-tab-omnibar-overlay {
+  /* ЦВЕТА — такие же, как в настройках основной темы lufky. */
+  --lufky-cyan: #0dff2d; /* Основной акцент: рамка, курсор и выбранная строка. */
+  --lufky-violet: #b39aff; /* Второй акцент: внешний ореол и наведение. */
+  --lufky-text: #e8ecfa; /* Названия вкладок и текст ввода. */
+  --lufky-muted: #9aa8c7; /* Адрес сайта и подсказка пустого поля. */
+  --lufky-surface: #141a2b; /* Непрозрачная подложка списка. */
+  --lufky-edge: rgba(159, 179, 230, 0.14); /* Рамка поля ввода. */
+
+  /* ФОРМА, РАЗМЕР И ДВИЖЕНИЕ
+     Ширина ограничена размером экрана; список прокручивается внутри.
+     Тонировка затемняет сайт за окном, blur размывает его.
+     0px отключает размытие, 0 убирает затемнение.
+     Время появления не влияет на скорость самого fuzzy-поиска. */
+  --lufky-fuzzy-width: 720px;
+  --lufky-fuzzy-max-height: 660px;
+  --lufky-fuzzy-radius: 18px;
+  --lufky-fuzzy-row-radius: 10px;
+  --lufky-fuzzy-backdrop-opacity: 0.56;
+  --lufky-fuzzy-backdrop-blur: 6px;
+  --lufky-fuzzy-enter-time: 280ms;
+  --lufky-fuzzy-row-time: 160ms;
+  --lufky-fuzzy-ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  color-scheme: dark !important;
+  color: var(--lufky-text) !important;
+  font: 15px/1.4 system-ui, "Segoe UI", sans-serif !important;
+  text-shadow: none !important;
+  background: rgba(3, 7, 15, var(--lufky-fuzzy-backdrop-opacity)) !important;
+  backdrop-filter: blur(var(--lufky-fuzzy-backdrop-blur)) !important;
+  padding: 16px !important;
+  box-sizing: border-box !important;
+}
+
+/* Размеры учитывают padding и рамки. Только внутри окна расширения. */
+#zen-tab-omnibar-overlay *,
+#zen-tab-omnibar-overlay *::before,
+#zen-tab-omnibar-overlay *::after {
+  box-sizing: border-box !important;
+}
+
+/* ОСНОВНАЯ ПАНЕЛЬ
+   Одна зелёная рамка на тёмном фоне; фиолетовый ореол только снаружи.
+   Непрозрачный фон сохраняет читаемость на любом сайте. */
+#zen-tab-omnibar-overlay > .zen-omnibar {
+  width: min(var(--lufky-fuzzy-width), calc(100vw - 32px)) !important;
+  max-width: none !important;
+  min-height: min(180px, calc(100dvh - 32px)) !important;
+  max-height: min(var(--lufky-fuzzy-max-height), calc(100dvh - 32px)) !important;
+  padding: 16px !important;
+  border: none !important;
+  border-radius: var(--lufky-fuzzy-radius) !important;
+  outline: none !important;
+  color: var(--lufky-text) !important;
+  font-family: inherit !important;
+  background:
+    radial-gradient(ellipse at 0% 0%, color-mix(in srgb, var(--lufky-cyan) 8%, transparent), transparent 60%),
+    radial-gradient(ellipse at 100% 100%, color-mix(in srgb, var(--lufky-violet) 9%, transparent), transparent 65%),
+    var(--lufky-surface) !important;
+  box-shadow:
+    inset 0 0 0 1.5px color-mix(in srgb, var(--lufky-cyan) 78%, transparent),
+    0 0 20px color-mix(in srgb, var(--lufky-cyan) 20%, transparent),
+    0 0 52px color-mix(in srgb, var(--lufky-violet) 22%, transparent),
+    0 24px 64px rgba(0, 0, 0, 0.48) !important;
+}
+
+/* ПОЛЕ ПОИСКА
+   Подсказка — muted, набранный текст — text, курсор — cyan.
+   Рамка фокуса остаётся видимой для навигации с клавиатуры. */
+#zen-tab-omnibar-overlay .zen-input {
+  /* Убираем нативную серую заливку поля: фон и рамку рисует CSS ниже. */
+  appearance: none !important;
+  min-width: 0 !important;
+  width: 100% !important;
+  flex: 0 0 auto !important;
+  margin: 0 0 12px !important;
+  padding: 12px 14px !important;
+  border: none !important;
+  border-radius: var(--lufky-fuzzy-row-radius) !important;
+  outline: none !important;
+  font: inherit !important;
+  font-size: 17px !important;
+  color: var(--lufky-text) !important;
+  caret-color: var(--lufky-cyan) !important;
+  background: rgba(159, 179, 230, 0.06) !important;
+  box-shadow: inset 0 0 0 1px var(--lufky-edge) !important;
+  transition: background-color var(--lufky-fuzzy-row-time) ease,
+              box-shadow var(--lufky-fuzzy-row-time) ease !important;
+}
+
+#zen-tab-omnibar-overlay .zen-input:focus {
+  background: color-mix(in srgb, var(--lufky-cyan) 5%, var(--lufky-surface)) !important;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--lufky-cyan) 48%, transparent) !important;
+}
+
+#zen-tab-omnibar-overlay .zen-input::placeholder {
+  color: var(--lufky-muted) !important;
+  opacity: 1 !important;
+}
+
+/* СПИСОК
+   min-height: 0 позволяет flex-контейнеру сжиматься и прокручиваться.
+   Цвет полосы прокрутки задан свойством Firefox scrollbar-color. */
+#zen-tab-omnibar-overlay .zen-list {
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 2px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: color-mix(in srgb, var(--lufky-violet) 45%, transparent) transparent !important;
+}
+
+/* СТРОКА РЕЗУЛЬТАТА
+   Иконка | название | домен. Явные колонки сохраняют выравнивание
+   даже у вкладки без иконки сайта. Длинные строки обрезаются многоточием.
+   Меняем только внешний вид: обработчики кликов и клавиш — в расширении. */
+#zen-tab-omnibar-overlay .zen-tab-item {
+  display: grid !important;
+  grid-template-columns: 24px minmax(0, 1fr) minmax(90px, 28%) !important;
+  gap: 12px !important;
+  align-items: center !important;
+  padding: 11px 12px !important;
+  margin: 0 !important;
+  flex: 0 0 auto !important;
+  border: none !important;
+  border-radius: var(--lufky-fuzzy-row-radius) !important;
+  background: transparent !important;
+  box-shadow: inset 0 0 0 1px transparent !important;
+  color: var(--lufky-text) !important;
+  font-family: inherit !important;
+  transition: background-color var(--lufky-fuzzy-row-time) ease,
+              box-shadow var(--lufky-fuzzy-row-time) ease !important;
+}
+
+/* Наведение мыши — лёгкая подсветка второго акцента. */
+#zen-tab-omnibar-overlay .zen-tab-item:hover {
+  background: color-mix(in srgb, var(--lufky-violet) 8%, transparent) !important;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--lufky-violet) 18%, transparent) !important;
+}
+
+/* Класс selected ставит само расширение при выборе стрелками.
+   Полоска слева и градиент повторяют выбранную вкладку Zen.
+   Правило идёт после hover, поэтому выбранная строка всегда различима. */
+#zen-tab-omnibar-overlay .zen-tab-item.selected {
+  background: linear-gradient(110deg,
+    color-mix(in srgb, var(--lufky-cyan) 12%, transparent),
+    color-mix(in srgb, var(--lufky-violet) 16%, transparent)) !important;
+  box-shadow:
+    inset 3px 0 0 var(--lufky-cyan),
+    inset 0 0 0 1px color-mix(in srgb, var(--lufky-cyan) 26%, transparent) !important;
+}
+
+#zen-tab-omnibar-overlay .zen-favicon {
+  grid-column: 1 !important;
+  grid-row: 1 !important;
+  width: 24px !important;
+  height: 24px !important;
+  border-radius: 5px !important;
+  object-fit: contain !important;
+}
+
+#zen-tab-omnibar-overlay .zen-title {
+  grid-column: 2 !important;
+  grid-row: 1 !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  color: var(--lufky-text) !important;
+  font: inherit !important;
+  font-size: 15px !important;
+}
+
+#zen-tab-omnibar-overlay .zen-tab-item.selected .zen-title {
+  font-weight: 600 !important;
+}
+
+#zen-tab-omnibar-overlay .zen-url {
+  grid-column: 3 !important;
+  grid-row: 1 !important;
+  min-width: 0 !important;
+  color: var(--lufky-muted) !important;
+  font: inherit !important;
+  font-size: 12px !important;
+  text-align: right !important;
+}
+
+/* Небольшой экран: домен переносится под название.
+   Ни текст, ни панель не выходят за ширину окна. */
+@media (max-width: 520px) {
+  #zen-tab-omnibar-overlay .zen-tab-item {
+    grid-template-columns: 24px minmax(0, 1fr) !important;
+    column-gap: 10px !important;
+    row-gap: 2px !important;
+  }
+
+  #zen-tab-omnibar-overlay .zen-favicon {
+    grid-row: 1 / span 2 !important;
+  }
+
+  #zen-tab-omnibar-overlay .zen-url {
+    grid-column: 2 !important;
+    grid-row: 2 !important;
+    text-align: left !important;
+  }
+}
+
+/* ПОЯВЛЕНИЕ
+   Затемнение проявляется отдельно от панели.
+   Длительность находится в fuzzy-enter-time выше.
+   Весь список не анимируется заново на каждый набранный символ. */
+@keyframes lufky-fuzzy-overlay-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes lufky-fuzzy-panel-in {
+  from { opacity: 0; translate: 0 8px; scale: 0.97; }
+  to { opacity: 1; translate: 0 0; scale: 1; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  #zen-tab-omnibar-overlay {
+    animation: lufky-fuzzy-overlay-in var(--lufky-fuzzy-enter-time) ease-out !important;
+  }
+
+  #zen-tab-omnibar-overlay > .zen-omnibar {
+    animation: lufky-fuzzy-panel-in var(--lufky-fuzzy-enter-time) var(--lufky-fuzzy-ease) !important;
+  }
+}
+
+/* При системном уменьшении движения показываем окно сразу. */
+@media (prefers-reduced-motion: reduce) {
+  #zen-tab-omnibar-overlay,
+  #zen-tab-omnibar-overlay > .zen-omnibar,
+  #zen-tab-omnibar-overlay .zen-input,
+  #zen-tab-omnibar-overlay .zen-tab-item {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
