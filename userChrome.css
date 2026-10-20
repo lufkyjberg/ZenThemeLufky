@@ -213,6 +213,23 @@ menupopup {
    movingtab отключает эффекты наведения на время перетаскивания.
    Мод серых выгруженных вкладок продолжает работать. */
 
+/* Zen задаёт цвет текста, акцент и color-scheme отдельно на каждом
+   zen-workspace. Значения на :root не перекрывают эти локальные стили.
+   Применяем палитру здесь, в том числе к воркспейсам после синхронизации.
+   Цвета вкладок задаём для обычного состояния, наведения и выбора. */
+#tabbrowser-tabs,
+#tabbrowser-tabs zen-workspace {
+  color-scheme: dark !important;
+  color: var(--lufky-text) !important;
+  --toolbox-textcolor: var(--lufky-text) !important;
+  --toolbar-color: var(--lufky-text) !important;
+  --zen-primary-color: var(--lufky-cyan) !important;
+  --tab-text-color: var(--lufky-text) !important;
+  --tab-text-color-hover: var(--lufky-text) !important;
+  --tab-text-color-selected: var(--lufky-text) !important;
+  --tab-selected-color-scheme: dark !important;
+}
+
 #tabbrowser-tabs .tabbrowser-tab > .tab-stack {
   /* Длительность сдвига берём из tab-hover-time с общим множителем. */
   transition: transform calc(var(--lufky-tab-hover-time) * var(--lufky-motion-multiplier)) var(--lufky-ease) !important;
